@@ -6,10 +6,10 @@
         @csrf
 
         @php
-        $tenantIdentified = \Rboschin\SimpleTenant\Facades\SimpleTenant::check();
-        $requestKey = config('simpletenant.identification_request_key', 'tenant_path');
-        $tenantPath = $tenantIdentified ? (\Rboschin\SimpleTenant\Facades\SimpleTenant::get()['slug'] ?? '') :
-        old($requestKey);
+        $tenantData = session('simpletenant_tenant');
+        $tenantIdentified = !empty($tenantData);
+        $requestKey = 'tenant_path';
+        $tenantPath = $tenantIdentified ? ($tenantData['slug'] ?? '') : old($requestKey);
         @endphp
 
         <!-- Tenant Identification -->

@@ -18,13 +18,45 @@ Tenant Breeze is a modified version of Laravel Breeze 1.x adapted for multi-tena
 
 ## Installation
 
-Install the package via composer:
+### Via GitHub (Remote)
 
-```bash
-composer require rboschin/tenant-breeze --dev
+To install the package directly from GitHub, add the following to your Laravel project's `composer.json`:
+
+```json
+{
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/rboschin/tenant-breeze.git"
+        }
+    ],
+    "require": {
+        "rboschin/tenant-breeze": "dev-master"
+    }
+}
 ```
 
-After installing the package, run the `breeze:install` command:
+### Via Local Repository
+
+To use the package during development or from a local folder, add the following to your Laravel project's `composer.json`:
+
+```json
+{
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../packages/tenant-breeze"
+        }
+    ],
+    "require": {
+        "rboschin/tenant-breeze": "*"
+    }
+}
+```
+
+### Run Installer
+
+After installing the package via Composer, run the `breeze:install` command:
 
 ```bash
 php artisan breeze:install blade
