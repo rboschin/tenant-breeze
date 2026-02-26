@@ -256,7 +256,9 @@ class InstallCommand extends Command implements PromptsForMissingInput
      */
     protected function replaceInFile($search, $replace, $path)
     {
-        file_put_contents($path, str_replace($search, $replace, file_get_contents($path)));
+        if (file_exists($path)) {
+            file_put_contents($path, str_replace($search, $replace, file_get_contents($path)));
+        }
     }
 
     /**
@@ -362,6 +364,86 @@ class InstallCommand extends Command implements PromptsForMissingInput
         ) === 'Pest');
     }
 
+    /**
+     * Replace RouteServiceProvider::HOME references with '/dashboard' in the given directory.
+     *
+     * @param  string  $directory
+     * @return void
+     */
+    protected function replaceRouteServiceProviderReferences($directory)
+    {
+        if (file_exists(app_path('Providers/RouteServiceProvider.php'))) {
+            return;
+        }
+
+        $finder = (new Finder)
+            ->in($directory)
+            ->name('*.php')
+            ->notName('RouteServiceProvider.php')
+            ->contains('RouteServiceProvider::HOME');
+
+        foreach ($finder as $file) {
+            $this->replaceInFile(
+                ['use App\Providers\RouteServiceProvider;', 'RouteServiceProvider::HOME'],
+                ['', "'/dashboard'"],
+                $file->getRealPath()
+            );
+        }
+    }
+
+    /**
+     * Install the middleware to the application.
+     *
+     * @param  string  $name
+     * @param  string  $after
+     * @param  string  $group
+     * @return void
+     */
+    protected function installMiddleware($name, $after = null, $group = 'web')
+    {
+        if (file_exists(base_path('bootstrap/app.php'))) {
+            $this->installMiddlewareToBootstrap($name, $group);
+        } elseif (file_exists(app_path('Http/Kernel.php'))) {
+            $this->installMiddlewareAfter($after, $name, $group);
+        }
+    }
+
+    /**
+     * Install the middleware to bootstrap/app.php.
+     *
+     * @param  string  $name
+     * @param  string  $group
+     * @return void
+     */
+    protected function installMiddlewareToBootstrap($name, $group = 'web')
+    {
+        $bootstrapApp = file_get_contents(base_path('bootstrap/app.php'));
+
+        if (Str::contains($bootstrapApp, $name)) {
+            return;
+        }
+
+        $method = $group === 'web' ? 'appendToGroup' : 'alias';
+        $registration = $group === 'web' 
+            ? "\$middleware->appendToGroup('web', [\\".ltrim($name, '\\')."::class]);"
+            : "\$middleware->alias(['".Str::kebab(class_basename($name))."' => \\".ltrim($name, '\\')."::class]);";
+
+        if (Str::contains($bootstrapApp, 'withMiddleware(function (Middleware $middleware) {')) {
+            $bootstrapApp = str_replace(
+                'withMiddleware(function (Middleware $middleware) {',
+                "withMiddleware(function (Middleware $middleware) {".PHP_EOL."        ".$registration,
+                $bootstrapApp
+            );
+        } elseif (Str::contains($bootstrapApp, 'withMiddleware(function (Middleware $middleware): void {')) {
+            $bootstrapApp = str_replace(
+                'withMiddleware(function (Middleware $middleware): void {',
+                "withMiddleware(function (Middleware $middleware): void {".PHP_EOL."        ".$registration,
+                $bootstrapApp
+            );
+        }
+
+        file_put_contents(base_path('bootstrap/app.php'), $bootstrapApp);
+    }
     /**
      * Determine whether the project is already using Pest.
      *

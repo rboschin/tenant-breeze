@@ -31,7 +31,7 @@ To install the package directly from GitHub, add the following to your Laravel p
         }
     ],
     "require": {
-        "rboschin/tenant-breeze": "dev-master"
+        "rboschin/tenant-breeze": "dev-main"
     }
 }
 ```
@@ -49,7 +49,7 @@ To use the package during development or from a local folder, add the following 
         }
     ],
     "require": {
-        "rboschin/tenant-breeze": "*"
+        "rboschin/tenant-breeze": "dev-main"
     }
 }
 ```
